@@ -1,6 +1,6 @@
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         File-Tail-App
-version:      v0.0.1
+version:      v0.0.2
 version_from: App.pm
 installdirs:  site
 requires:

@@ -1,6 +1,11 @@
 Revision history for Perl extension File::Tail::App.
 
-0.01  Mon Dec 12 19:38:28 2005
+0.0.1  Mon Dec 12 19:38:28 2005
 	- original version; created by h2xs 1.22 with options
 		-AXc -n File::Tail::App
-
+0.0.2
+	- fixed version numbering in Changes and README files
+	- comment and POD cleanup
+	- added "or croak" to the File::Tail->new() call in case File::Tail's bug (pronounced enhancement request) 16866 is addressed ever
+	- added do_md5_check funtionality (Thanks for that idea Ben!) 
+	- added check of filehandle eq (Thanks for that idea Ben!)
