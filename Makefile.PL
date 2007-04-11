@@ -1,12 +1,12 @@
-use 5.008001;
 use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
+
 WriteMakefile(
     NAME              => 'File::Tail::App',
-    VERSION_FROM      => 'App.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'App.pm', # retrieve abstract from module
-       AUTHOR         => 'Daniel Muey <dmuey@nonet>') : ()),
+    VERSION_FROM      => 'App.pm', 
+    PREREQ_PM         => {
+        'File::Tail' => 0,
+    }, 
+    ($] >= 5.005 ?     
+      (ABSTRACT_FROM  => 'App.pm', 
+       AUTHOR         => 'Daniel Muey, <http://drmuey.com/cpan_contact.pl>') : ()),
 );

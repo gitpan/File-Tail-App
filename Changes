@@ -9,3 +9,6 @@ Revision history for Perl extension File::Tail::App.
 	- added "or croak" to the File::Tail->new() call in case File::Tail's bug (pronounced enhancement request) 16866 is addressed ever
 	- added do_md5_check funtionality (Thanks for that idea Ben!) 
 	- added check of filehandle eq (Thanks for that idea Ben!)
+	
+0.0.3
+	- fixed up Makefile.PL includeing rt 23728

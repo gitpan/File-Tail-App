@@ -6,11 +6,10 @@ use warnings;
 use File::Tail;
 use Carp;
 
-require Exporter;
-our @ISA    = qw(Exporter);
+use base 'Exporter';
 our @EXPORT = qw(tail_app);
 
-use version;our $VERSION = qv('0.0.2');
+use version;our $VERSION = qv('0.0.3');
 
 sub File::Tail::seek_to {
     my($tail, $seek_to) = @_;
