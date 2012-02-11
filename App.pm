@@ -4,16 +4,19 @@ use strict;
 use warnings;
 
 use File::Tail;
-use Carp;
+use Carp ();
 
-use base 'Exporter';
-our @EXPORT = qw(tail_app);
+sub import {
+    my $caller = caller();
+    no strict 'refs';
+    *{ $caller . '::tail_app' } = \&tail_app;
+}
 
-use version;our $VERSION = qv('0.0.3');
+$File::Tail::App::VERSION = '0.4';
 
 sub File::Tail::seek_to {
     my($tail, $seek_to) = @_;
-    croak 'argument to seek_to() must be all digits' if $seek_to !~ m/^\d+$/;
+    Carp::croak 'argument to seek_to() must be all digits' if $seek_to !~ m/^\d+$/;
     $tail->{'curpos'} = sysseek $tail->{'handle'}, $seek_to, 0;
 }
 
@@ -22,7 +25,7 @@ sub File::Tail::app {
 
     $args_ref->{'line_handler'} = sub { print shift; }
         if !$args_ref->{'line_handler'};
-    croak '"line_handler" must be an code ref'
+    Carp::croak '"line_handler" must be an code ref'
         if ref $args_ref->{'line_handler'} ne 'CODE';
 
     $args_ref->{'verbose'} = 0 if !defined $args_ref->{'verbose'};
@@ -57,7 +60,7 @@ sub File::Tail::app {
         my @stat = stat $tail->{'input'};
         my $replaced = 0;
         if(-s $tail->{'input'} < $start_size) {
-            carp "$tail->{'input'} was truncated: " . tell($tail->{'handle'})
+            Carp::carp "$tail->{'input'} was truncated: " . sysseek($tail->{'handle'},0,1)
                 if $args_ref->{'verbose'};
             $tail->seek_to(length $line); 
             $replaced++;
@@ -65,7 +68,7 @@ sub File::Tail::app {
         elsif($do_md5_check && $md5_chk ne _get_md5_info($tail, 
                                                        $md5_len, 
                                                        $do_md5_check)) {
-            carp "MD5 Check changed: " . tell($tail->{'handle'})
+            Carp::carp "MD5 Check changed: " . sysseek($tail->{'handle'},0,1)
                 if $args_ref->{'verbose'};
             $replaced++;
         }
@@ -79,27 +82,27 @@ sub File::Tail::app {
 
         # do simple checks then tell them about it & reset some vars if needed
         if($stat[1] ne $file_ident && $file_ident) {
-            carp "$tail->{'input'} was replaced: " . tell($tail->{'handle'}) 
+            Carp::carp "$tail->{'input'} was replaced: " . sysseek($tail->{'handle'},0,1) 
                 if $args_ref->{'verbose'};
             $file_ident = $stat[1];
         }
  
         if($start_handle ne $tail->{'handle'}) {
             # checking descriptor via fileno() is same check but numerically
-            carp "descriptor/handle changed: " . tell($tail->{'handle'})
+            Carp::carp "descriptor/handle changed: " . sysseek($tail->{'handle'},0,1)
                 if $args_ref->{'verbose'};
             $start_handle = $tail->{'handle'};
         }
 
         $args_ref->{'line_handler'}->($line);
         _set_lastrun_data( 
-                           tell($tail->{'handle'}),
+                           sysseek($tail->{'handle'},0,1),
                            $file_ident,
                            $md5_chk, 
                            $md5_len, 
                            $lastrun_file
                          ) if defined $lastrun_file;
-        carp "$tail->{'input'} is at : " . tell($tail->{'handle'})
+        Carp::carp "$tail->{'input'} is at : " . sysseek($tail->{'handle'},0,1)
             if $args_ref->{'verbose'} > 1;
     }   
 }
@@ -107,14 +110,14 @@ sub File::Tail::app {
 sub tail_app {
     my ($args_ref) = @_;
 
-    croak 'tail_app() requires a hashref as its first argument' 
+    Carp::croak 'tail_app() requires a hashref as its first argument' 
         if ref $args_ref ne 'HASH';
 
-    croak 'missing "new" key from tail_app arg' if !exists $args_ref->{'new'};
-    croak '"new" must be an array ref' if ref $args_ref->{'new'} ne 'ARRAY';
+    Carp::croak 'missing "new" key from tail_app arg' if !exists $args_ref->{'new'};
+    Carp::croak '"new" must be an array ref' if ref $args_ref->{'new'} ne 'ARRAY';
 
     my $tail = File::Tail->new(@{ $args_ref->{'new'} }) 
-        or croak "Could not create File::Tail object: $!";
+        or Carp::croak "Could not create File::Tail object: $!";
 
     $tail->app({
         'line_handler' => $args_ref->{'line_handler'},
@@ -138,7 +141,7 @@ sub _get_lastrun_data {
     my($curpos, $logged_ident, $md5_chk, $md5_len) = ('','',$_md5_chk,$_md5_len);
     if(-e $cur_file) {
         open my $curat_fh, '<', $cur_file 
-            or croak "Could not read $cur_file: $!";
+            or Carp::croak "Could not read $cur_file: $!";
         chomp(my $first_line = <$curat_fh>);
         close $curat_fh;
 
@@ -157,9 +160,10 @@ sub _get_lastrun_data {
 
 sub _set_lastrun_data {
     my($new_posi, $file_ident, $md5_chk, $md5_len, $cur_file) = @_;
+    $md5_chk ||= 0;
 
     open my $curpos_fh, '>', $cur_file 
-        or croak "Could not write $cur_file: $!";
+        or Carp::croak "Could not write $cur_file: $!";
     print {$curpos_fh} qq($new_posi-$file_ident-$md5_chk-$md5_len);
     close $curpos_fh;
 }
@@ -171,7 +175,7 @@ sub _get_md5_info {
     require Digest::MD5; # only do the module if needed
 
     my $data_to_md5 = ''; # to avoid uninitialized value warnings
-    my $origpos = tell($tail->{'handle'});
+    my $origpos = sysseek($tail->{'handle'},0,1);
 
     $tail->seek_to(0);
     sysread $tail->{'handle'}, $data_to_md5, $md5_len;

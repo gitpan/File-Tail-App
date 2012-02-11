@@ -5,8 +5,10 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 1;
-BEGIN { use_ok('File::Tail::App') };
+use Test::More tests => 2;
+BEGIN { use_ok('File::Tail::App','tail_app') };
+
+ok(defined &tail_app,'tail_app() imported OK');
 
 #########################
 
